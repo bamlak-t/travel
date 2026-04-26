@@ -907,30 +907,53 @@
         };
         const isMine = type === "heart" ? r.myHeart : r.myDislike;
 
-        if (isMine) {
-          await sb.from("reactions").delete().match({
-            trip_id: tripId,
-            day_id: dayId,
-            stop_name: stopName,
-            username,
-            reaction: type,
-          });
+        // ── Optimistic update: mutate local state and repaint immediately ──
+        const updated = { ...r };
+        if (type === "heart") {
+          updated.myHeart = !isMine;
+          updated.hearts = isMine ? Math.max(0, r.hearts - 1) : r.hearts + 1;
         } else {
-          await sb.from("reactions").upsert(
-            {
+          updated.myDislike = !isMine;
+          updated.dislikes = isMine
+            ? Math.max(0, r.dislikes - 1)
+            : r.dislikes + 1;
+        }
+        reactionMap.set(key, updated);
+        applyReactionsToDOM();
+
+        // ── Persist to Supabase (fire and forget; realtime will reconcile) ──
+        if (isMine) {
+          sb.from("reactions")
+            .delete()
+            .match({
               trip_id: tripId,
               day_id: dayId,
               stop_name: stopName,
               username,
               reaction: type,
-            },
-            {
-              onConflict: "trip_id,day_id,stop_name,username,reaction",
-              ignoreDuplicates: true,
-            },
-          );
+            })
+            .then(({ error }) => {
+              if (error) fetchAndApplyReactions(tripId); // rollback on error
+            });
+        } else {
+          sb.from("reactions")
+            .upsert(
+              {
+                trip_id: tripId,
+                day_id: dayId,
+                stop_name: stopName,
+                username,
+                reaction: type,
+              },
+              {
+                onConflict: "trip_id,day_id,stop_name,username,reaction",
+                ignoreDuplicates: true,
+              },
+            )
+            .then(({ error }) => {
+              if (error) fetchAndApplyReactions(tripId); // rollback on error
+            });
         }
-        // Realtime subscription fires → fetchAndApplyReactions updates the DOM
       }
 
       // ── LOAD TRIP ────────────────────────────────────────────────────────────
