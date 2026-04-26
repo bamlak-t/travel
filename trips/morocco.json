@@ -1,0 +1,121 @@
+{
+  "id": "morocco",
+  "title": "Morocco",
+  "emoji": "🇲🇦",
+  "dateRange": "Aug 30 – Sep 9, 2026",
+  "costs": {
+    "items": [
+      { "item": "✈️ Return flights (pp)",       "budget": "£160",  "midRange": "£320"  },
+      { "item": "🏨 Accommodation (10 nights)", "budget": "£280",  "midRange": "£650"  },
+      { "item": "🍽️ Food & drink",              "budget": "£160",  "midRange": "£310"  },
+      { "item": "🚌 In-country transport",       "budget": "£60",   "midRange": "£130"  },
+      { "item": "🏄 Activities & tours",         "budget": "£80",   "midRange": "£180"  },
+      { "item": "🛡️ Travel insurance",           "budget": "£40",   "midRange": "£65"   }
+    ],
+    "totalBudget": "~£780",
+    "totalMidRange": "~£1,655",
+    "note": "Budget = Ryanair/easyJet + hostel/budget riads. Mid-range = BA/Royal Air Maroc + boutique coastal riads. Book flights 6–8 weeks ahead for best fares."
+  },
+  "days": [
+    {
+      "id": 1, "color": "#E05A3A", "label": "Day 1",
+      "title": "Arrive in Marrakesh", "date": "Sat, Aug 30", "optional": false,
+      "stops": [
+        { "name": "Marrakesh Menara Airport", "lat": 31.6068, "lng": -8.0363, "emoji": "✈️", "desc": "Arrive, collect bags, petit taxi to medina (~15 min)" },
+        { "name": "Djemaa el-Fna Square",     "lat": 31.6258, "lng": -7.9892, "emoji": "🎭", "desc": "Evening stroll — street performers, snake charmers, food stalls" },
+        { "name": "Medina Riad",              "lat": 31.6295, "lng": -7.9811, "emoji": "🏠", "desc": "Check into your riad in the heart of the medina" }
+      ]
+    },
+    {
+      "id": 2, "color": "#E8963A", "label": "Day 2",
+      "title": "Marrakesh Full Day", "date": "Sun, Aug 31", "optional": false,
+      "stops": [
+        { "name": "Bahia Palace",     "lat": 31.6210, "lng": -7.9834, "emoji": "🏛️", "desc": "Stunning 19th-century palace with intricate tilework" },
+        { "name": "Saadian Tombs",    "lat": 31.6183, "lng": -7.9879, "emoji": "⚰️", "desc": "Royal tombs from the Saadian dynasty, rediscovered 1917" },
+        { "name": "Marrakesh Souks",  "lat": 31.6312, "lng": -7.9843, "emoji": "🛍️", "desc": "Labyrinthine spice, textile & artisan markets" },
+        { "name": "Jardin Majorelle", "lat": 31.6419, "lng": -8.0040, "emoji": "🌿", "desc": "YSL's iconic cobalt-blue gardens + YSL Museum next door" }
+      ]
+    },
+    {
+      "id": 3, "color": "#C8A82C", "label": "Day 3",
+      "title": "Marrakesh → Essaouira", "date": "Mon, Sep 1", "optional": false,
+      "stops": [
+        { "name": "El Badi Palace",         "lat": 31.6182, "lng": -7.9823, "emoji": "🏚️", "desc": "Ruined 16th-century palace; climb ramparts for views" },
+        { "name": "Essaouira Medina",       "lat": 31.5137, "lng": -9.7683, "emoji": "🚗", "desc": "2.5 hr drive; check into coastal riad" },
+        { "name": "Skala de la Ville",      "lat": 31.5161, "lng": -9.7760, "emoji": "🏰", "desc": "Atlantic sea bastions with cannon ramparts" },
+        { "name": "Essaouira Fishing Port", "lat": 31.5155, "lng": -9.7771, "emoji": "🐟", "desc": "Fresh grilled fish dinner by the harbour" }
+      ]
+    },
+    {
+      "id": 4, "color": "#3AAB72", "label": "Day 4",
+      "title": "Essaouira — Water Sports", "date": "Tue, Sep 2", "optional": false,
+      "stops": [
+        { "name": "Plage d'Essaouira",       "lat": 31.5020, "lng": -9.7760, "emoji": "🏄", "desc": "World-famous kitesurfing & windsurfing beach" },
+        { "name": "Blue Fishing Harbour",    "lat": 31.5155, "lng": -9.7771, "emoji": "⛵", "desc": "Watch trawlers come in; fresh seafood stalls" },
+        { "name": "Essaouira Art Galleries", "lat": 31.5127, "lng": -9.7668, "emoji": "🎨", "desc": "Morocco's art capital — studios in the medina" }
+      ]
+    },
+    {
+      "id": 5, "color": "#1A9E8E", "label": "Day 5",
+      "title": "Essaouira — Local Life", "date": "Wed, Sep 3", "optional": false,
+      "stops": [
+        { "name": "Argan Oil Cooperative",        "lat": 31.5450, "lng": -9.6800, "emoji": "🫒", "desc": "See argan oil made; buy direct from the cooperative" },
+        { "name": "Beach Horse Riding",           "lat": 31.4900, "lng": -9.7830, "emoji": "🐴", "desc": "Gallop on the wide Atlantic beach" },
+        { "name": "Sidi M. Ben Abdallah Museum",  "lat": 31.5133, "lng": -9.7676, "emoji": "🏺", "desc": "Free museum of local history & crafts" },
+        { "name": "Gnaoua Music Venue",           "lat": 31.5125, "lng": -9.7690, "emoji": "🥁", "desc": "Live Gnaoua music unique to Essaouira" }
+      ]
+    },
+    {
+      "id": 6, "color": "#3A8FD4", "label": "Day 6",
+      "title": "Day Trip to Agadir", "date": "Thu, Sep 4", "optional": false,
+      "stops": [
+        { "name": "Agadir Beach",  "lat": 30.4100, "lng": -9.6020, "emoji": "🏖️", "desc": "8 km of golden sand — Morocco's premier beach resort" },
+        { "name": "Souk El Had",   "lat": 30.4278, "lng": -9.6050, "emoji": "🛒", "desc": "One of Morocco's largest markets — 6,000+ stalls" },
+        { "name": "Agadir Marina", "lat": 30.4150, "lng": -9.6030, "emoji": "⛵", "desc": "Boat trips; seafood restaurants on the waterfront" }
+      ]
+    },
+    {
+      "id": 7, "color": "#8E44AD", "label": "Day 7",
+      "title": "Essaouira — Final Day", "date": "Fri, Sep 5", "optional": false,
+      "stops": [
+        { "name": "Sunrise Beach Walk",     "lat": 31.5020, "lng": -9.7760, "emoji": "🌅", "desc": "Early morning walk on the empty beach" },
+        { "name": "Thuya Wood Workshops",   "lat": 31.5130, "lng": -9.7680, "emoji": "🪵", "desc": "Watch artisans carve Essaouira's famous thuya wood" },
+        { "name": "Place Moulay el Hassan", "lat": 31.5138, "lng": -9.7671, "emoji": "☕", "desc": "Final mint tea; spices & silver jewellery souvenirs" }
+      ]
+    },
+    {
+      "id": 8, "color": "#C0336E", "label": "Day 8",
+      "title": "Return to Marrakesh", "date": "Sat, Sep 6", "optional": false,
+      "stops": [
+        { "name": "Gueliz (Nouvelle Ville)",        "lat": 31.6354, "lng": -8.0100, "emoji": "🏙️", "desc": "French-influenced new city — cafés & boutiques" },
+        { "name": "Marrakesh Airport (Departure)",  "lat": 31.6068, "lng": -8.0363, "emoji": "✈️", "desc": "Fly home — or continue for 3 optional days" }
+      ]
+    },
+    {
+      "id": 9, "color": "#7D6142", "label": "Day 9",
+      "title": "Rabat — Capital City", "date": "Sun, Sep 7", "optional": true,
+      "stops": [
+        { "name": "Hassan Tower",         "lat": 34.0246, "lng": -6.8213, "emoji": "🕌", "desc": "Iconic 12th-century unfinished minaret" },
+        { "name": "Kasbah of the Udayas", "lat": 34.0335, "lng": -6.8330, "emoji": "🏯", "desc": "Blue-and-white kasbah with ocean views" },
+        { "name": "Royal Palace, Rabat",  "lat": 34.0136, "lng": -6.8437, "emoji": "👑", "desc": "Magnificent palace complex with giant brass gates" }
+      ]
+    },
+    {
+      "id": 10, "color": "#546E7A", "label": "Day 10",
+      "title": "Chefchaouen — Blue City", "date": "Mon, Sep 8", "optional": true,
+      "stops": [
+        { "name": "Chefchaouen Medina",   "lat": 35.1688, "lng": -5.2636, "emoji": "💙", "desc": "The famous blue-painted mountain town" },
+        { "name": "Spanish Mosque",       "lat": 35.1721, "lng": -5.2574, "emoji": "⛪", "desc": "30-min hike; panoramic views over the Rif Mountains" },
+        { "name": "Ras El Maa Waterfall", "lat": 35.1700, "lng": -5.2600, "emoji": "💧", "desc": "Mountain stream — serene, authentic local scene" }
+      ]
+    },
+    {
+      "id": 11, "color": "#D47420", "label": "Day 11",
+      "title": "Fly Home", "date": "Tue, Sep 9", "optional": true,
+      "stops": [
+        { "name": "Tangier Ibn Battouta Airport",  "lat": 35.7269, "lng": -5.9189, "emoji": "✈️", "desc": "1.5 hrs from Chefchaouen — budget departure" },
+        { "name": "Casablanca Mohammed V Airport", "lat": 33.3675, "lng": -7.5897, "emoji": "✈️", "desc": "4 hrs from Chefchaouen — more long-haul options" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Travel Plans</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --white: #ffffff;
+        --bg: #f0f7ff;
+        --blue-100: #daeeff;
+        --blue-200: #a8d8f0;
+        --blue-400: #4aabdb;
+        --blue-600: #1a7fa8;
+        --blue-800: #0d4f6b;
+        --ink: #1a2b38;
+        --muted: #6b8ca0;
+        --border: #c8e4f5;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family: "DM Sans", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        overflow: hidden;
+      }
+
+      /* ── SHELL ── */
+      #app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        height: 100dvh;
+      }
+
+      /* ── HEADER ── */
+      #header {
+        flex-shrink: 0;
+        background: var(--white);
+        border-bottom: 1px solid var(--border);
+        padding: 0 14px 0 20px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        box-shadow: 0 1px 6px rgba(26, 127, 168, 0.08);
+        z-index: 300;
+      }
+
+      #header h1 {
+        font-family: "DM Serif Display", serif;
+        font-size: 19px;
+        color: var(--blue-800);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .dates {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+      }
+
+      #trip-select {
+        font-family: "DM Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 5px 8px;
+        background: var(--bg);
+        color: var(--ink);
+        cursor: pointer;
+        outline: none;
+        max-width: 160px;
+      }
+      #trip-select:focus {
+        border-color: var(--blue-400);
+      }
+
+      #user-btn {
+        font-family: "DM Sans", sans-serif;
+        font-size: 12px;
+        background: none;
+        border: 1.5px solid var(--border);
+        border-radius: 20px;
+        padding: 4px 10px;
+        cursor: pointer;
+        color: var(--muted);
+        white-space: nowrap;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+      #user-btn:hover {
+        border-color: var(--blue-400);
+        color: var(--blue-600);
+      }
+
+      /* ── MAP ── */
+      #map-wrap {
+        flex: 0 0 48%;
+        position: relative;
+        z-index: 1;
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ── BOTTOM PANEL ── */
+      #bottom {
+        flex: 1;
+        overflow-y: auto;
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+      }
+      #bottom::-webkit-scrollbar {
+        width: 4px;
+      }
+      #bottom::-webkit-scrollbar-thumb {
+        background: var(--blue-200);
+        border-radius: 2px;
+      }
+
+      /* ── DAYS GRID ── */
+      .days-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 10px;
+        padding: 14px 14px 4px;
+      }
+
+      .day-card {
+        background: var(--white);
+        border-radius: 12px;
+        border: 1.5px solid var(--border);
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          box-shadow 0.18s,
+          border-color 0.18s,
+          transform 0.15s;
+      }
+      .day-card:hover {
+        box-shadow: 0 4px 16px rgba(26, 127, 168, 0.13);
+        transform: translateY(-1px);
+      }
+      .day-card.active {
+        border-color: var(--blue-400);
+        box-shadow: 0 4px 18px rgba(26, 127, 168, 0.2);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 12px 14px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .day-pill {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #fff;
+      }
+      .day-pill .dn {
+        font-family: "DM Serif Display", serif;
+        font-size: 14px;
+        line-height: 1;
+      }
+      .day-pill .dl {
+        font-size: 7.5px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        opacity: 0.88;
+      }
+
+      .card-meta {
+        flex: 1;
+        min-width: 0;
+      }
+      .card-title {
+        font-family: "DM Serif Display", serif;
+        font-size: 13.5px;
+        color: var(--ink);
+        line-height: 1.3;
+      }
+      .card-date {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 1px;
+      }
+
+      .opt-tag {
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 20px;
+        border: 1.5px solid currentColor;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .card-stops {
+        padding: 8px 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      /* ── STOP ROW ── */
+      .stop-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12.5px;
+        color: var(--muted);
+        line-height: 1.4;
+        transition: opacity 0.2s;
+      }
+
+      .stop-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .stop-name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition:
+          color 0.2s,
+          text-decoration 0.2s;
+      }
+
+      /* ── DISLIKED STATE ── */
+      .stop-row.disliked {
+        opacity: 0.45;
+      }
+      .stop-row.disliked .stop-name {
+        text-decoration: line-through;
+        color: #a0a0a0;
+      }
+
+      /* ── REACTION BAR ── */
+      .reaction-bar {
+        display: flex;
+        gap: 3px;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+
+      .react-btn {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 11px;
+        padding: 1px 5px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: transparent;
+        cursor: pointer;
+        color: var(--muted);
+        font-family: "DM Sans", sans-serif;
+        line-height: 1.5;
+        transition:
+          background 0.13s,
+          border-color 0.13s,
+          color 0.13s;
+      }
+      .react-btn:hover {
+        border-color: var(--blue-400);
+      }
+      .react-btn .rcount {
+        font-size: 10px;
+        min-width: 6px;
+      }
+      .heart-btn.active {
+        background: #fff0f2;
+        border-color: #e07090;
+        color: #c0336e;
+      }
+      .thumb-btn.active {
+        background: #f5f5f5;
+        border-color: #aaa;
+        color: #555;
+      }
+
+      /* ── COST TABLE ── */
+      .cost-outer {
+        padding: 14px 14px 24px;
+      }
+      .cost-box {
+        background: var(--white);
+        border-radius: 12px;
+        border: 1.5px solid var(--border);
+        padding: 16px 18px 18px;
+      }
+      .cost-box h2 {
+        font-family: "DM Serif Display", serif;
+        font-size: 16px;
+        color: var(--blue-800);
+        margin-bottom: 14px;
+      }
+      .cost-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .cost-table th {
+        padding: 8px 10px;
+        background: var(--blue-100);
+        color: var(--blue-800);
+        font-weight: 600;
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        text-align: left;
+      }
+      .cost-table th:not(:first-child),
+      .cost-table td:not(:first-child) {
+        text-align: right;
+      }
+      .cost-table td {
+        padding: 8px 10px;
+        color: var(--ink);
+        border-bottom: 1px solid var(--blue-100);
+      }
+      .cost-table tbody tr:last-child td {
+        border-bottom: none;
+        font-weight: 700;
+        color: var(--blue-800);
+        background: var(--blue-100);
+        font-size: 13px;
+      }
+      .cost-table .cat {
+        color: var(--muted);
+      }
+      .cost-note {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 10px;
+        line-height: 1.6;
+        font-style: italic;
+      }
+
+      /* ── LEAFLET POPUP ── */
+      .leaflet-popup-content-wrapper {
+        background: #fff !important;
+        border: 1.5px solid var(--blue-200) !important;
+        border-radius: 10px !important;
+        color: var(--ink) !important;
+        font-family: "DM Sans", sans-serif !important;
+        box-shadow: 0 4px 20px rgba(26, 127, 168, 0.15) !important;
+        padding: 0 !important;
+      }
+      .leaflet-popup-content {
+        margin: 0 !important;
+      }
+      .popup-inner {
+        padding: 11px 13px 9px;
+      }
+      .popup-day-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 2px;
+        font-weight: 600;
+      }
+      .popup-title {
+        font-family: "DM Serif Display", serif;
+        font-size: 14px;
+        color: var(--ink);
+        margin-bottom: 3px;
+      }
+      .popup-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .leaflet-popup-tip {
+        background: #fff !important;
+      }
+      .leaflet-popup-close-button {
+        color: var(--blue-400) !important;
+        top: 5px !important;
+        right: 7px !important;
+        font-size: 18px !important;
+      }
+
+      /* ── MAP LABELS ── */
+      .map-label {
+        background: rgba(255, 255, 255, 0.93);
+        border-radius: 4px;
+        padding: 2px 6px 2px 4px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--ink);
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.11);
+        border-left: 2.5px solid currentColor;
+        line-height: 1.4;
+      }
+
+      /* ── USERNAME MODAL ── */
+      #username-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(13, 79, 107, 0.38);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .username-box {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 28px 24px 22px;
+        width: 320px;
+        max-width: 92vw;
+        box-shadow: 0 12px 40px rgba(13, 79, 107, 0.18);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .username-box p {
+        font-family: "DM Serif Display", serif;
+        font-size: 17px;
+        color: var(--blue-800);
+      }
+      .modal-sub {
+        font-family: "DM Sans", sans-serif !important;
+        font-size: 13px !important;
+        color: var(--muted) !important;
+      }
+      #username-input {
+        font-family: "DM Sans", sans-serif;
+        font-size: 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        width: 100%;
+        outline: none;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      #username-input:focus {
+        border-color: var(--blue-400);
+      }
+      .modal-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 4px;
+      }
+      .modal-actions button {
+        font-family: "DM Sans", sans-serif;
+        font-size: 13px;
+        border-radius: 8px;
+        padding: 7px 14px;
+        cursor: pointer;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .modal-actions button:hover {
+        border-color: var(--blue-400);
+        color: var(--blue-600);
+      }
+      .btn-primary {
+        background: var(--blue-600) !important;
+        border-color: var(--blue-600) !important;
+        color: #fff !important;
+      }
+      .btn-primary:hover {
+        background: var(--blue-800) !important;
+        border-color: var(--blue-800) !important;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 600px) {
+        #map-wrap {
+          flex: 0 0 42%;
+        }
+        .days-grid {
+          grid-template-columns: 1fr;
+        }
+        #header h1 {
+          font-size: 15px;
+        }
+        .dates {
+          display: none;
+        }
+        #trip-select {
+          max-width: 120px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header id="header">
+        <h1>
+          <span id="trip-emoji"></span>&nbsp;<span id="trip-name"
+            >Loading…</span
+          >
+        </h1>
+        <div class="header-right">
+          <select id="trip-select" aria-label="Select trip"></select>
+          <span class="dates" id="trip-dates"></span>
+          <button id="user-btn" title="Set your display name">
+            👤 <span id="user-label">set name</span>
+          </button>
+        </div>
+      </header>
+
+      <div id="map-wrap">
+        <div id="map"></div>
+      </div>
+
+      <div id="bottom">
+        <div class="days-grid" id="days-grid"></div>
+        <div id="cost-wrap"></div>
+      </div>
+    </div>
+
+    <!-- Username Modal -->
+    <div
+      id="username-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div class="username-box">
+        <p id="modal-title">Choose a display name</p>
+        <p class="modal-sub">Used for your reactions. No login needed.</p>
+        <input
+          id="username-input"
+          type="text"
+          placeholder="e.g. Alice 🌍"
+          maxlength="30"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <div class="modal-actions">
+          <button id="username-cancel">Cancel</button>
+          <button id="username-confirm" class="btn-primary">Let's go →</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ── CONFIG ───────────────────────────────────────────────────────────────
+      const SUPABASE_URL = "https://ipiuhnopkycycirspeky.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_19qI3Xe4m37bws_bn6l4pw_KKitS2FN";
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      // ── STATE ────────────────────────────────────────────────────────────────
+      let currentDays = [];
+      let allMarkers = {};
+      let allLabels = {};
+      let dayLines = {};
+      let realtimeChannel = null;
+      let reactionMap = new Map(); // `${dayId}|||${stopName}` → {hearts, dislikes, myHeart, myDislike}
+      let currentTripId = null;
+
+      // ── USERNAME ─────────────────────────────────────────────────────────────
+      let _usernameCallback = null;
+
+      function getUsername() {
+        return localStorage.getItem("username");
+      }
+      function setUsername(n) {
+        localStorage.setItem("username", n);
+        document.getElementById("user-label").textContent = n;
+      }
+
+      function showUsernameModal(onComplete) {
+        _usernameCallback = onComplete || null;
+        const input = document.getElementById("username-input");
+        input.value = getUsername() || "";
+        document.getElementById("username-modal").style.display = "flex";
+        setTimeout(() => input.focus(), 50);
+      }
+
+      function closeUsernameModal() {
+        document.getElementById("username-modal").style.display = "none";
+        _usernameCallback = null;
+      }
+
+      function confirmUsername() {
+        const name = document.getElementById("username-input").value.trim();
+        if (!name) {
+          document.getElementById("username-input").focus();
+          return;
+        }
+        setUsername(name);
+        document.getElementById("username-modal").style.display = "none";
+        const cb = _usernameCallback;
+        _usernameCallback = null;
+        cb?.();
+      }
+
+      document
+        .getElementById("username-confirm")
+        .addEventListener("click", confirmUsername);
+      document
+        .getElementById("username-cancel")
+        .addEventListener("click", closeUsernameModal);
+      document
+        .getElementById("username-input")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") confirmUsername();
+          if (e.key === "Escape") closeUsernameModal();
+        });
+      document
+        .getElementById("username-modal")
+        .addEventListener("click", (e) => {
+          if (e.target === document.getElementById("username-modal"))
+            closeUsernameModal();
+        });
+      document
+        .getElementById("user-btn")
+        .addEventListener("click", () => showUsernameModal(null));
+
+      // ── MAP INIT ─────────────────────────────────────────────────────────────
+      const map = L.map("map", {
+        center: [32.0, -7.5],
+        zoom: 6,
+        zoomControl: false,
+      });
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        {
+          attribution: "© CARTO",
+          subdomains: "abcd",
+          maxZoom: 19,
+        },
+      ).addTo(map);
+
+      const linesGroup = L.layerGroup().addTo(map);
+      const markersGroup = L.layerGroup().addTo(map);
+      const labelsGroup = L.layerGroup().addTo(map);
+
+      // ── MAP ICONS ────────────────────────────────────────────────────────────
+      function pinIcon(day, idx, dim) {
+        const r = idx === 0 ? 8 : 6;
+        return L.divIcon({
+          html: `<div style="width:${r * 2}px;height:${r * 2}px;border-radius:50%;background:${day.color};border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.2);opacity:${dim ? 0.15 : 1}"></div>`,
+          className: "",
+          iconSize: [r * 2, r * 2],
+          iconAnchor: [r, r],
+        });
+      }
+
+      function labelIcon(day, stop, dim) {
+        return L.divIcon({
+          html: `<div class="map-label" style="color:${day.color};opacity:${dim ? 0.15 : 1}">${stop.emoji} ${stop.name}</div>`,
+          className: "",
+          iconAnchor: [-10, 6],
+        });
+      }
+
+      // ── MAP INTERACTIONS ─────────────────────────────────────────────────────
+      function highlightDay(dayId) {
+        document
+          .querySelectorAll(".day-card")
+          .forEach((el) =>
+            el.classList.toggle("active", +el.dataset.dayId === dayId),
+          );
+        const card = document.querySelector(
+          `.day-card[data-day-id="${dayId}"]`,
+        );
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        currentDays.forEach((day) => {
+          const on = day.id === dayId;
+          dayLines[day.id]?.setStyle({
+            opacity: on ? 1 : 0.1,
+            weight: on ? 3.5 : 1.5,
+          });
+          day.stops.forEach((stop, idx) => {
+            allMarkers[`${day.id}-${idx}`]?.setIcon(pinIcon(day, idx, !on));
+            allLabels[`${day.id}-${idx}`]?.setIcon(labelIcon(day, stop, !on));
+          });
+        });
+      }
+
+      function focusDay(dayId) {
+        highlightDay(dayId);
+        const day = currentDays.find((d) => d.id === dayId);
+        if (!day) return;
+        const bounds = L.latLngBounds(day.stops.map((s) => [s.lat, s.lng])).pad(
+          0.35,
+        );
+        map.flyToBounds(bounds, { duration: 0.8 });
+      }
+
+      function resetAll() {
+        document
+          .querySelectorAll(".day-card")
+          .forEach((el) => el.classList.remove("active"));
+        currentDays.forEach((day) => {
+          dayLines[day.id]?.setStyle({ opacity: 0.7, weight: 2.5 });
+          day.stops.forEach((stop, idx) => {
+            allMarkers[`${day.id}-${idx}`]?.setIcon(pinIcon(day, idx, false));
+            allLabels[`${day.id}-${idx}`]?.setIcon(labelIcon(day, stop, false));
+          });
+        });
+      }
+
+      map.on("click", resetAll);
+
+      // ── COST TABLE ───────────────────────────────────────────────────────────
+      function buildCostTable(costs) {
+        const wrap = document.getElementById("cost-wrap");
+        if (!costs || !Array.isArray(costs.items) || !costs.items.length) {
+          wrap.innerHTML = "";
+          return;
+        }
+        const rows = costs.items
+          .map(
+            (r) => `
+    <tr>
+      <td class="cat">${r.item}</td>
+      <td>${r.budget}</td>
+      <td>${r.midRange}</td>
+    </tr>`,
+          )
+          .join("");
+
+        wrap.innerHTML = `
+    <div class="cost-outer">
+      <div class="cost-box">
+        <h2>💷 Estimated Trip Cost</h2>
+        <table class="cost-table">
+          <thead><tr><th>Item</th><th>Budget</th><th>Mid-Range</th></tr></thead>
+          <tbody>
+            ${rows}
+            <tr>
+              <td><strong>Total per person</strong></td>
+              <td><strong>${costs.totalBudget ?? ""}</strong></td>
+              <td><strong>${costs.totalMidRange ?? ""}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        ${costs.note ? `<p class="cost-note">${costs.note}</p>` : ""}
+      </div>
+    </div>`;
+      }
+
+      // ── REACTIONS ────────────────────────────────────────────────────────────
+      async function initReactions(tripId) {
+        if (realtimeChannel) {
+          await sb.removeChannel(realtimeChannel);
+          realtimeChannel = null;
+        }
+        await fetchAndApplyReactions(tripId);
+        realtimeChannel = sb
+          .channel(`rt-reactions-${tripId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "reactions",
+              filter: `trip_id=eq.${tripId}`,
+            },
+            () => fetchAndApplyReactions(tripId),
+          )
+          .subscribe();
+      }
+
+      async function fetchAndApplyReactions(tripId) {
+        const { data, error } = await sb
+          .from("reactions")
+          .select("*")
+          .eq("trip_id", tripId);
+        if (error) {
+          console.error("reactions fetch:", error.message);
+          return;
+        }
+        const username = getUsername();
+        reactionMap.clear();
+        (data || []).forEach((row) => {
+          const key = `${row.day_id}|||${row.stop_name}`;
+          if (!reactionMap.has(key))
+            reactionMap.set(key, {
+              hearts: 0,
+              dislikes: 0,
+              myHeart: false,
+              myDislike: false,
+            });
+          const r = reactionMap.get(key);
+          if (row.reaction === "heart") {
+            r.hearts++;
+            if (row.username === username) r.myHeart = true;
+          }
+          if (row.reaction === "thumbs_down") {
+            r.dislikes++;
+            if (row.username === username) r.myDislike = true;
+          }
+        });
+        applyReactionsToDOM();
+      }
+
+      function applyReactionsToDOM() {
+        document.querySelectorAll(".stop-row").forEach((row) => {
+          const dayId = row.dataset.dayId;
+          const stopRaw = row.dataset.stop;
+          if (!dayId || !stopRaw) return;
+          const stopName = decodeURIComponent(stopRaw);
+          const key = `${dayId}|||${stopName}`;
+          const r = reactionMap.get(key) || {
+            hearts: 0,
+            dislikes: 0,
+            myHeart: false,
+            myDislike: false,
+          };
+
+          const heartBtn = row.querySelector(".heart-btn");
+          const thumbBtn = row.querySelector(".thumb-btn");
+          if (heartBtn) {
+            heartBtn.querySelector(".rcount").textContent =
+              r.hearts > 0 ? r.hearts : "";
+            heartBtn.classList.toggle("active", r.myHeart);
+          }
+          if (thumbBtn) {
+            thumbBtn.querySelector(".rcount").textContent =
+              r.dislikes > 0 ? r.dislikes : "";
+            thumbBtn.classList.toggle("active", r.myDislike);
+          }
+          row.classList.toggle("disliked", r.dislikes >= 1);
+        });
+      }
+
+      async function toggleReaction(tripId, dayId, stopName, type) {
+        const username = getUsername();
+        if (!username) {
+          showUsernameModal(() =>
+            toggleReaction(tripId, dayId, stopName, type),
+          );
+          return;
+        }
+        const key = `${dayId}|||${stopName}`;
+        const r = reactionMap.get(key) || {
+          hearts: 0,
+          dislikes: 0,
+          myHeart: false,
+          myDislike: false,
+        };
+        const isMine = type === "heart" ? r.myHeart : r.myDislike;
+
+        if (isMine) {
+          await sb.from("reactions").delete().match({
+            trip_id: tripId,
+            day_id: dayId,
+            stop_name: stopName,
+            username,
+            reaction: type,
+          });
+        } else {
+          await sb.from("reactions").insert({
+            trip_id: tripId,
+            day_id: dayId,
+            stop_name: stopName,
+            username,
+            reaction: type,
+          });
+        }
+        // Realtime subscription fires → fetchAndApplyReactions updates the DOM
+      }
+
+      // ── LOAD TRIP ────────────────────────────────────────────────────────────
+      function loadTrip(tripData) {
+        currentDays = tripData.days;
+        currentTripId = tripData.id;
+
+        // Update header
+        document.getElementById("trip-emoji").textContent =
+          tripData.emoji || "✈️";
+        document.getElementById("trip-name").textContent =
+          tripData.title || "Trip";
+        document.getElementById("trip-dates").textContent =
+          tripData.dateRange || "";
+        document.title = `${tripData.title} · Travel Plans`;
+
+        // Clear map layers
+        linesGroup.clearLayers();
+        markersGroup.clearLayers();
+        labelsGroup.clearLayers();
+        allMarkers = {};
+        allLabels = {};
+        dayLines = {};
+
+        // Clear cards
+        const grid = document.getElementById("days-grid");
+        grid.innerHTML = "";
+
+        // Build day cards
+        currentDays.forEach((day) => {
+          const card = document.createElement("div");
+          card.className = "day-card";
+          card.dataset.dayId = day.id;
+
+          const stopsHtml = day.stops
+            .map(
+              (s) => `
+      <div class="stop-row" data-day-id="${day.id}" data-stop="${encodeURIComponent(s.name)}">
+        <span style="font-size:13px;flex-shrink:0">${s.emoji}</span>
+        <span class="stop-dot" style="background:${day.color}"></span>
+        <span class="stop-name">${s.name}</span>
+        <span class="reaction-bar">
+          <button class="react-btn heart-btn"
+            data-trip="${tripData.id}" data-day="${day.id}"
+            data-stop="${encodeURIComponent(s.name)}" data-type="heart"
+            title="Like this stop">❤️ <span class="rcount"></span></button>
+          <button class="react-btn thumb-btn"
+            data-trip="${tripData.id}" data-day="${day.id}"
+            data-stop="${encodeURIComponent(s.name)}" data-type="thumbs_down"
+            title="Not keen on this one">👎 <span class="rcount"></span></button>
+        </span>
+      </div>`,
+            )
+            .join("");
+
+          card.innerHTML = `
+      <div class="card-header">
+        <div class="day-pill" style="background:${day.color}">
+          <span class="dn">${day.id}</span>
+          <span class="dl">day</span>
+        </div>
+        <div class="card-meta">
+          <div class="card-title">${day.title}</div>
+          <div class="card-date">${day.date}</div>
+        </div>
+        ${day.optional ? `<span class="opt-tag" style="color:${day.color}">Optional</span>` : ""}
+      </div>
+      <div class="card-stops">${stopsHtml}</div>`;
+
+          card.addEventListener("click", (e) => {
+            if (e.target.closest(".react-btn")) return;
+            focusDay(day.id);
+          });
+
+          grid.appendChild(card);
+        });
+
+        // Reaction button listeners
+        grid.querySelectorAll(".react-btn").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleReaction(
+              btn.dataset.trip,
+              +btn.dataset.day,
+              decodeURIComponent(btn.dataset.stop),
+              btn.dataset.type,
+            );
+          });
+        });
+
+        // Cost table
+        buildCostTable(tripData.costs);
+
+        // Build map layers
+        currentDays.forEach((day) => {
+          dayLines[day.id] = L.polyline(
+            day.stops.map((s) => [s.lat, s.lng]),
+            {
+              color: day.color,
+              weight: 2.5,
+              opacity: 0.7,
+              dashArray: day.optional ? "7 5" : null,
+            },
+          ).addTo(linesGroup);
+
+          day.stops.forEach((stop, idx) => {
+            const m = L.marker([stop.lat, stop.lng], {
+              icon: pinIcon(day, idx, false),
+            }).bindPopup(
+              `<div class="popup-inner">
+          <div class="popup-day-label" style="color:${day.color}">${day.label} · ${day.date}</div>
+          <div class="popup-title">${stop.emoji} ${stop.name}</div>
+          <div class="popup-desc">${stop.desc}</div>
+        </div>`,
+              { maxWidth: 240 },
+            );
+            m.on("click", () => highlightDay(day.id));
+            markersGroup.addLayer(m);
+            allMarkers[`${day.id}-${idx}`] = m;
+
+            const lbl = L.marker([stop.lat, stop.lng], {
+              icon: labelIcon(day, stop, false),
+              interactive: false,
+              zIndexOffset: -100,
+            });
+            labelsGroup.addLayer(lbl);
+            allLabels[`${day.id}-${idx}`] = lbl;
+          });
+        });
+
+        // Fly to all stops
+        const allLatLngs = currentDays.flatMap((d) =>
+          d.stops.map((s) => [s.lat, s.lng]),
+        );
+        if (allLatLngs.length) {
+          map.flyToBounds(L.latLngBounds(allLatLngs).pad(0.15), {
+            duration: 0.8,
+          });
+        }
+
+        initReactions(tripData.id);
+      }
+
+      // ── BOOT ─────────────────────────────────────────────────────────────────
+      const storedUser = getUsername();
+      if (storedUser)
+        document.getElementById("user-label").textContent = storedUser;
+
+      (async () => {
+        try {
+          const resp = await fetch("trips/index.json");
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const manifest = await resp.json();
+
+          const select = document.getElementById("trip-select");
+          manifest.forEach((t) => {
+            const opt = document.createElement("option");
+            opt.value = t.file || `${t.id}.json`;
+            opt.textContent = `${t.emoji || ""} ${t.title}`.trim();
+            select.appendChild(opt);
+          });
+
+          select.addEventListener("change", async () => {
+            const r = await fetch(`trips/${select.value}`);
+            const data = await r.json();
+            loadTrip(data);
+          });
+
+          if (manifest.length) {
+            const first = manifest[0];
+            const r = await fetch(`trips/${first.file || first.id + ".json"}`);
+            const data = await r.json();
+            loadTrip(data);
+          }
+        } catch (err) {
+          console.error("Failed to load trips:", err);
+          document.getElementById("trip-name").textContent =
+            "Could not load trips";
+        }
+      })();
+    </script>
+  </body>
+</html>
