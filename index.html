@@ -916,13 +916,19 @@
             reaction: type,
           });
         } else {
-          await sb.from("reactions").insert({
-            trip_id: tripId,
-            day_id: dayId,
-            stop_name: stopName,
-            username,
-            reaction: type,
-          });
+          await sb.from("reactions").upsert(
+            {
+              trip_id: tripId,
+              day_id: dayId,
+              stop_name: stopName,
+              username,
+              reaction: type,
+            },
+            {
+              onConflict: "trip_id,day_id,stop_name,username,reaction",
+              ignoreDuplicates: true,
+            },
+          );
         }
         // Realtime subscription fires → fetchAndApplyReactions updates the DOM
       }
